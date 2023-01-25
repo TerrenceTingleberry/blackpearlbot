@@ -20,7 +20,7 @@ class Filters(commands.GroupCog):
     @app_commands.guild_only()
     @app_commands.command(
         name="add",
-        description="Add a filter to the server",
+        description="Add a new filter to the server.",
     )
     async def filter(
         self,
@@ -28,18 +28,27 @@ class Filters(commands.GroupCog):
         filter: str,
         response: str,
     ):
+'''
+Args:
+- filter: str -> name of the filter
+- response: str -> the bot response triggered by the filter
+'''
         await interaction.response.defer()
         cust_filter_id = await FilterModel.create(
             guild_id=str(interaction.guild_id),
             filter=filter,
             response=response,
         )
-        await interaction.followup.send(f"Added filter {filter}")
-
+        await interaction.followup.send(f"Added filter: ``{filter}``.")
+'''
+Returns:
+- Confirmation message and the filter name if successful
+- Error if unsuccessful
+'''
     @app_commands.guild_only()
     @app_commands.command(
         name="list",
-        description="List all filters on the server",
+        description="List all filters on the server.",
     )
     async def filters(self, interaction: Interaction):
         await interaction.response.defer()
@@ -49,11 +58,15 @@ class Filters(commands.GroupCog):
             return
         filter_list = "\n - ".join([str(filter) for filter in filters])
         await interaction.followup.send(f"Filters:\n - {filter_list}")
-
+'''
+Returns:
+- List(str) of all existing filters on the server if successful
+- Message that no filters have been found if unsuccessful
+'''
     @app_commands.guild_only()
     @app_commands.command(
         name="stop",
-        description="Stop a filter from being used",
+        description="Stop a filter from being used.",
     )
     async def stop(self, interaction: Interaction, filter: str):
         await interaction.response.defer()
@@ -61,12 +74,19 @@ class Filters(commands.GroupCog):
             guild_id=str(interaction.guild_id),
             filter=filter,
         )
-        await interaction.followup.send(f"Stopped filter {filter}")
+        await interaction.followup.send(f"Stopped filter: ``{filter}``.")
+'''
+Args:
+- filter: str -> name of the filter
 
+Returns:
+- Stops the specified filter and sends confirmation message if successful
+- Error if unsuccessful
+'''
     @app_commands.guild_only()
     @app_commands.command(
         name="stopall",
-        description="Stop all filters from being used",
+        description="Stop all filters from being used.",
     )
     async def stopall(self, interaction: Interaction):
         await interaction.response.send_message(
@@ -74,13 +94,21 @@ class Filters(commands.GroupCog):
             view=Confirm(),
             ephemeral=True,
         )
-
+'''
+Returns:
+- Confirmation view with buttons ['Yes', 'No'] if successful
+    if 'Yes' -> stops all filters on the server
+    if 'No' -> cancels the stop command
+- Error if unsuccessful
+'''
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot:
             return
+# Grabs the guild ID and only listens for filters unique to that guild
         filters = await FilterModel.get_all(guild_id=str(message.guild.id))
         for filter in filters:
             #  casefold() is used to make the string lowercase
             if filter.filter.casefold() in message.content.casefold():
                 await message.reply(filter.response)
+                
