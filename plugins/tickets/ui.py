@@ -15,9 +15,9 @@ from discord import (
     utils,
 )
 from discord.ui import Button, Modal, TextInput, View, button, Select
-from tickets.models import PanelModel, FormModel, FieldModel
+from .models import PanelModel, FormModel, FieldModel
 
-from tickets.history_html import HTML, message
+from .history_html import HTML, message
 
 
 def export_html(file_name: str, messages: list[Message]) -> str:
