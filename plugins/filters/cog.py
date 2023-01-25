@@ -95,15 +95,15 @@ Args:
 - None
 
 Return:
-- View with buttons ['Yes', 'No'] if successful
+- View with buttons ['Confirm', 'Cancel'] if successful
 - Error if unsuccessful
 '''        
         name="stopall",
         description="Stop all filters from being used.",
     )
     async def stopall(self, interaction: Interaction):
-    # if 'Yes' -> stops all filters on the server
-    # if 'No' -> cancels the stop command
+    # if 'Confirm' -> stops all filters on the server
+    # if 'Cancel' -> cancels the stop command
         await interaction.response.send_message(
             content="Are you sure you want to stop all filters?",
             view=Confirm(),
