@@ -6,12 +6,11 @@ from discord import Interaction, app_commands
 from discord.ext import commands
 
 logger = logging.getLogger(__name__)
-speed_test = speedtest.Speedtest()
 
 
 def bytes_to_mb(bytes):
-    KB = 1024  # One Kilobyte is 1024 bytes
-    MB = KB * 1024  # One MB is 1024 KB
+    KB = 1024
+    MB = KB * 1024
     return int(bytes / MB)
 
 
@@ -29,7 +28,7 @@ class Status(commands.Cog):
 
     @app_commands.command(
         name="ping",
-        description="Get the bot latency",
+        description="Get the bot latency.",
     )
     async def ping(self, interaction: Interaction):
         await interaction.response.send_message(
@@ -38,7 +37,7 @@ class Status(commands.Cog):
 
     @app_commands.command(
         name="uptime",
-        description="Get the bot uptime",
+        description="Get the bot uptime.",
     )
     async def uptime(self, interaction: Interaction):
         delta_uptime = datetime.utcnow() - self.bot.launch_time  # type: ignore
@@ -53,7 +52,7 @@ class Status(commands.Cog):
     @app_commands.command(
         name="speedtest",
         description="Test the download and upload speed of the bot.")
-    async def sync(self, interaction: Interaction):
+    async def speedtest(self, interaction: Interaction):
         speed_test = speedtest.Speedtest()
         download_speed = bytes_to_mb(speed_test.download())
         upload_speed = bytes_to_mb(speed_test.download())
@@ -62,7 +61,7 @@ class Status(commands.Cog):
 
     @app_commands.command(
         name="sync",
-        description="Sync the commands",
+        description="Sync the commands.",
     )
     async def sync(self, interaction: Interaction):
         synced = await self.bot.tree.sync()
