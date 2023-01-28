@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy import delete, select, update
 
-from plugins.database import SESSION
+from blackpearlbot.plugins.database import SESSION
 
 from .database import Filter
 
@@ -44,9 +44,9 @@ class FilterModel:
         **kwargs,
     ) -> int:  # sourcery skip: avoid-builtin-shadow
         #  check if filter exists:
-        filter = filter.casefold()
+        _filter = filter.casefold()
         query = select(Filter).where(
-            Filter.filter == filter,
+            Filter.filter == _filter,
             Filter.guild_id == guild_id,
         )
         cust_filter = await SESSION.execute(query)
@@ -82,8 +82,11 @@ class FilterModel:
         return None
 
     @classmethod
-    async def get_all(cls, guild_id: str) -> list["FilterModel"]:
-        query = select(Filter).where(Filter.guild_id == guild_id)
+    async def get_all(cls, guild_id: str = "all") -> list["FilterModel"]:
+        if guild_id == "all":
+            query = select(Filter)
+        else:
+            query = select(Filter).where(Filter.guild_id == guild_id)
         cust_filters = await SESSION.execute(query)
         return (
             [
@@ -97,9 +100,9 @@ class FilterModel:
     @classmethod
     async def delete(cls, guild_id: str, filter: str) -> None:
         # sourcery skip: avoid-builtin-shadow
-        filter = filter.casefold()
+        _filter = filter.casefold()
         query = delete(Filter).where(
-            Filter.filter == filter,
+            Filter.filter == _filter,
             Filter.guild_id == guild_id,
         )
         await SESSION.execute(query)
@@ -116,12 +119,12 @@ class FilterModel:
         guild_id: str,
         filter: str,
         new_response: str,
-    ) -> None:  # sourcery skip: avoid-builtin-shadow
-        filter = filter.casefold()
+    ) -> None:
+        _filter = filter.casefold()
         query = (
             update(Filter)
             .where(
-                Filter.filter == filter,
+                Filter.filter == _filter,
                 Filter.guild_id == guild_id,
             )
             .values(response=new_response)
@@ -144,3 +147,6 @@ class FilterModel:
         except Exception as e:
             await SESSION.rollback()
             raise e
+
+
+CHAT_FILTERS: dict[str, list[FilterModel]] = {}

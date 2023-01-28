@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
-from plugins.database import SESSION
+from blackpearlbot.plugins.database import SESSION
 
 from .database import Panel, Form, Field
 

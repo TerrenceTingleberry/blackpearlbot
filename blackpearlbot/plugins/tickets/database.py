@@ -1,7 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from plugins.database import BASE
+from blackpearlbot.plugins.database import BASE
 
 
 class Panel(BASE):

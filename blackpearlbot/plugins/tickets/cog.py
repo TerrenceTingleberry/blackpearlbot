@@ -1,24 +1,36 @@
 import json
+import logging
 
 from discord import Button, Interaction, app_commands
 from discord.ext import commands
+from discord.ui import View
 
-from .ui import PanelView, TicketView, FormCreate
+from .ui import (
+    FormDelete,
+    FormSelect,
+    PanelDelete,
+    PanelEdit,
+    PanelView,
+    TicketView,
+    FormCreate,
+)
 from .models import PanelModel, FormModel, FieldModel
+
+logger = logging.getLogger(__name__)
 
 
 @app_commands.guild_only()
 class Tickets(commands.GroupCog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     # doing something when the cog gets loaded
     async def cog_load(self):
-        print(f"{self.__class__.__name__} loaded!")
+        logger.info(f"{self.__class__.__name__} loaded!")
 
     # doing something when the cog gets unloaded
     async def cog_unload(self):
-        print(f"{self.__class__.__name__} unloaded!")
+        logger.info(f"{self.__class__.__name__} unloaded!")
 
     async def setup_hook(self):
         self.bot.add_view(PanelView())
@@ -57,12 +69,15 @@ class Tickets(commands.GroupCog):
     async def panel_delete(
         self,
         interaction: Interaction,
-        panel_id: int,
     ):
-        guild_id = interaction.guild_id or 0
-        await PanelModel.delete(str(guild_id), panel_id)
+        guild_id = str(interaction.guild_id) or "0"
+        panels = await PanelModel.get_all(guild_id)
+        dropdown = PanelDelete(guild_id, panels)
+        view = View()
+        view.add_item(dropdown)
         await interaction.response.send_message(
-            f"Deleted panel `{panel_id}`",
+            "Select a panel to delete",
+            view=view,
             ephemeral=True,
         )
 
@@ -89,22 +104,15 @@ class Tickets(commands.GroupCog):
         name="edit",
         description="Edit a ticket panel",
     )
-    async def panel_edit(
-        self,
-        interaction: Interaction,
-        panel_id: int,
-        name: str,
-        description: str = "",
-    ):
-        guild_id = interaction.guild_id or 0
-        await PanelModel.update(
-            guild_id=str(guild_id),
-            panel_id=panel_id,
-            name=name,
-            description=description,
-        )
+    async def panel_edit(self, interaction: Interaction):
+        guild_id = str(interaction.guild_id) or "0"
+        panels = await PanelModel.get_all(guild_id)
+        dropdown = PanelEdit(guild_id, panels)
+        view = View()
+        view.add_item(dropdown)
         await interaction.response.send_message(
-            f"Edited panel `{panel_id}`",
+            "Select a panel to edit",
+            view=view,
             ephemeral=True,
         )
 
@@ -118,7 +126,11 @@ class Tickets(commands.GroupCog):
         panel_id: int,
     ):
         guild_id = interaction.guild_id or 0
-        panel = await PanelModel.get(str(guild_id), panel_id)
+        panel = await PanelModel.get(
+            str(guild_id),
+            panel_id,
+            fetch_related=True,
+        )
         if not panel:
             await interaction.response.send_message(
                 f"Panel `{panel_id}` not found",
@@ -128,7 +140,10 @@ class Tickets(commands.GroupCog):
         panelview = PanelView(panel)
         title = f"**{panel.name}**"
         description = panel.description
-        content = f"{title}\n{description}"
+        form_text = ""
+        for idx, form in enumerate(panel.forms):
+            form_text += f"{idx + 1}. **{form.name}**\n{form.description}\n\n"
+        content = f"{title}\n{description}\n\n{form_text}"
         await interaction.response.send_message(
             content=content,
             view=panelview,
@@ -156,12 +171,22 @@ class Tickets(commands.GroupCog):
     async def form_delete(
         self,
         interaction: Interaction,
-        panel_id: int,
-        form_id: int,
     ):
-        await FormModel.delete(panel_id, form_id)
+        guild_id = str(interaction.guild_id) or "0"
+        # await interaction.response.defer(ephemeral=True)
+        panels = await PanelModel.get_all(guild_id, fetch_related=True)
+        dropdown = FormDelete(panels)
+        if len(dropdown.options) == 0:
+            await interaction.response.send_message(
+                "No forms found",
+                ephemeral=True,
+            )
+            return
+        view = View()
+        view.add_item(dropdown)
         await interaction.response.send_message(
-            f"Deleted form `{form_id}`",
+            "Select a form to delete",
+            view=view,
             ephemeral=True,
         )
 
@@ -191,22 +216,16 @@ class Tickets(commands.GroupCog):
         name="edit",
         description="Edit a ticket form",
     )
-    async def form_edit(
-        self,
-        interaction: Interaction,
-        panel_id: int,
-        form_id: int,
-        name: str,
-        description: str = "",
-    ):
-        await FormModel.update(
-            panel_id=panel_id,
-            form_id=form_id,
-            name=name,
-            description=description,
-        )
-        await interaction.response.send_message(
-            f"Edited form `{form_id}`",
+    async def form_edit(self, interaction: Interaction):
+        guild_id = str(interaction.guild_id) or "0"
+        await interaction.response.defer(ephemeral=True)
+        panels = await PanelModel.get_all(guild_id, fetch_related=True)
+        dropdown = FormSelect(panels)
+        view = View()
+        view.add_item(dropdown)
+        await interaction.followup.send(
+            "Select a form to edit",
+            view=view,
             ephemeral=True,
         )
 
@@ -264,26 +283,4 @@ class Tickets(commands.GroupCog):
         fields = [field.__dict__ for field in fields]
         await interaction.response.send_message(
             f"Fields: ```json\n{json.dumps(fields, indent=4)}```",
-        )
-
-    @field.command(
-        name="edit",
-        description="Edit a ticket field",
-    )
-    async def field_edit(
-        self,
-        interaction: Interaction,
-        form_id: int,
-        field_id: int,
-        name: str,
-    ):
-        await FieldModel.update(
-            form_id=form_id,
-            field_id=field_id,
-            response="",
-            name=name,
-        )
-        await interaction.response.send_message(
-            f"Edited field `{field_id}`",
-            ephemeral=True,
         )

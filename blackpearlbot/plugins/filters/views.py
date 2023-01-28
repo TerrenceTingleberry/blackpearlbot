@@ -1,7 +1,7 @@
 from discord import ButtonStyle, Interaction
 from discord.ui import Button, View, button
 
-from .models import FilterModel
+from . import models
 
 
 class Confirm(View):
@@ -14,9 +14,10 @@ class Confirm(View):
         interaction: Interaction,
         button: Button,
     ):
-        await FilterModel.delete_all(
-            guild_id=str(interaction.guild_id),
-        )
+        global CHAT_FILTERS
+        if str(interaction.guild_id) in models.CHAT_FILTERS:
+            models.CHAT_FILTERS.pop(str(interaction.guild_id), None)
+            await models.FilterModel.delete_all(str(interaction.guild_id))
         await interaction.response.edit_message(
             content=f"Stopped all filters in {interaction.guild.name}",  # type: ignore  # noqa: E501
             view=None,

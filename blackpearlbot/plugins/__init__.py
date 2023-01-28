@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from .database import SESSION
 
@@ -10,5 +11,5 @@ except RuntimeError:  # 'RuntimeError: There is no current event loop...'
 if loop and loop.is_running():
     loop.create_task(SESSION.create_all())
 else:
-    print("Starting new event loop")
+    logging.debug("Starting new event loop")
     result = asyncio.run(SESSION.create_all())

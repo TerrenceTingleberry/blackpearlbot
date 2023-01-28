@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
 
-from plugins.database import BASE
+from blackpearlbot.plugins.database import BASE
 
 
 class Filter(BASE):
