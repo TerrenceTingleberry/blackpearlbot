@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     BlackPearlBot().run(
         os.getenv(
-            "TOKEN",
-            "",
+            "MTA2NjAyNDY2OTUyNzk1MzQzOA.G0JF3b.2E57gUrWJVeFNQnObKZ2IU8BddRybzwuFb6sS4",
+            "MTA2NjAyNDY2OTUyNzk1MzQzOA.G0JF3b.2E57gUrWJVeFNQnObKZ2IU8BddRybzwuFb6sS4",
         )
     )

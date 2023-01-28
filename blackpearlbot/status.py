@@ -1,11 +1,18 @@
 import logging
 from datetime import datetime
+import speedtest
 
 from discord import Interaction, app_commands
 from discord.ext import commands
 
-
 logger = logging.getLogger(__name__)
+speed_test = speedtest.Speedtest()
+
+
+def bytes_to_mb(bytes):
+    KB = 1024  # One Kilobyte is 1024 bytes
+    MB = KB * 1024  # One MB is 1024 KB
+    return int(bytes / MB)
 
 
 class Status(commands.Cog):
@@ -42,6 +49,16 @@ class Status(commands.Cog):
         await interaction.response.send_message(
             f"**Uptime:** {response}",
         )
+
+    @app_commands.command(
+        name="speedtest",
+        description="Test the download and upload speed of the bot.")
+    async def sync(self, interaction: Interaction):
+        speed_test = speedtest.Speedtest()
+        download_speed = bytes_to_mb(speed_test.download())
+        upload_speed = bytes_to_mb(speed_test.download())
+        await interaction.response.message_send(f"Bot download speed: {download_speed}MB"
+                                                f"\nBot upload speed: {upload_speed}MB")
 
     @app_commands.command(
         name="sync",
