@@ -51,13 +51,13 @@ class Status(commands.Cog):
 
     @app_commands.command(
         name="speedtest",
-        description="Test the download and upload speed of the bot.")
+        description="Test the download and upload speed.")
     async def speedtest(self, interaction: Interaction):
         speed_test = speedtest.Speedtest()
         download_speed = bytes_to_mb(speed_test.download())
         upload_speed = bytes_to_mb(speed_test.download())
-        await interaction.response.message_send(f"Bot download speed: {download_speed}MB"
-                                                f"\nBot upload speed: {upload_speed}MB")
+        await interaction.response.message_send(f"Download speed: {download_speed}MB"
+                                                f"\nUpload speed: {upload_speed}MB")
 
     @app_commands.command(
         name="sync",
